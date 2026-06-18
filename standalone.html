@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Finanças Bento Grid • Gestão Acolhedora</title>
+    <!-- Google Fonts: Quicksand for soft display and JetBrains Mono for clean math numbers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom Tailwind Configuration to match previous project typography -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Quicksand', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+              mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+            },
+          },
+        },
+      };
+    </script>
+    <!-- Custom Keyframe Animations for Smooth Transitions (replacing framer-motion in single script) -->
+    <style>
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes popIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(20px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+      }
+      .animate-pop-in {
+        animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      .animate-slide-in-right {
+        animation: slideInRight 0.3s ease-out forwards;
+      }
+      /* Custom scrollbar to match the pastel clean vibe */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #F3F4F6;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #D1D5DB;
+        border-radius: 9999px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #9CA3AF;
+      }
+    </style>
+  </head>
+  <body class="bg-[#FAF9F6] text-[#2D3436] font-sans antialiased min-h-screen select-none">
+    
+    <!-- Render Root React Element -->
+    <div id="root"></div>
+
+    <!-- React 18 and ReactDOM 18 CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel Standalone to compile JSX in the browser in real-time -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+
+    <!-- Application Script written in React/Babel syntax -->
+    <script type="text/babel">
+      const { useState, useEffect, useMemo } = React;
+
+      // Real SVG paths to map key icons with zero latency offline
+      const Icon = ({ name, className = "w-5 h-5", strokeWidth = 2.5 }) => {
+        const icons = {
+          clock: (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          ),
+          'trending-up': (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+              <polyline points="17 6 23 6 23 12" />
+            </svg>
+          ),
+          'trending-down': (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+              <polyline points="17 18 23 18 23 12" />
+            </svg>
+          ),
+          calendar: (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+          ),
+          sparkles: (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <path d="M12 3v1m0 16v1M4 12H3m18 0h-1M18.364 5.636l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707M12 7a5 5 0 100 10 5 5 0 000-10z" />
+            </svg>
+          ),
+          'arrow-right': (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          ),
+          plus: (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+          ),
+          trash: (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              <line x1="10" y1="11" x2="10" y2="17" />
+              <line x1="14" y1="11" x2="14" y2="17" />
+            </svg>
+          ),
+          'alert-triangle': (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3ZM12 9v4m0 4h.01" />
+            </svg>
+          ),
+          check: (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          ),
+          bell: (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9Zm-4.27 13a2 2 0 0 1-3.46 0" />
+            </svg>
+          ),
+          'bell-off': (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <path d="M13.73 21a2 2 0 0 1-3.46 0m5.12-7.85A5.96 5.96 0 0 0 18 8c0-2-.72-3.83-1.9-5.2M3 3l18 18" />
+            </svg>
+          ),
+          'rotate-ccw': (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <path d="M1 4v6h6M2.05 13.5a9 9 0 1 1 .55-5.5L1 10" />
+            </svg>
+          ),
+          search: (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          ),
+          x: (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          ),
+          'chevron-right': (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          ),
+          'thumbs-up': (
+            <svg className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} viewBox="0 0 24 24">
+              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+            </svg>
+          ),
+        };
+        return icons[name] || null;
+      };
+
+      // Default Setup Data
+      const DEFAULT_CATEGORIES = [
+        { id: '1', name: 'Alimentação', limit: 800, spent: 0, color: 'bg-[#ECF5FC] text-sky-800 border-sky-200/60' },
+        { id: '2', name: 'Transporte', limit: 350, spent: 0, color: 'bg-[#FDF1EB] text-amber-800 border-orange-200/60' },
+        { id: '3', name: 'Lazer', limit: 250, spent: 0, color: 'bg-[#F5EEFB] text-purple-800 border-purple-200/60' },
+        { id: '4', name: 'Moradia', limit: 1500, spent: 0, color: 'bg-[#EAF7EE] text-emerald-800 border-emerald-200/60' },
+      ];
+
+      const DEFAULT_INCOME_SOURCES = [
+        { id: '1', name: 'Salário', expectedAmount: 3000, color: 'bg-[#EAF7EE] text-emerald-800 border-emerald-200/60' },
+        { id: '2', name: 'Aluguel', expectedAmount: 800, color: 'bg-[#FDF1EB] text-amber-800 border-orange-200/60' },
+        { id: '3', name: 'Clientes / Freelas', expectedAmount: 1200, color: 'bg-[#F5EEFB] text-purple-800 border-purple-200/60' },
+        { id: '4', name: 'Outros', expectedAmount: 500, color: 'bg-[#ECF5FC] text-sky-800 border-sky-200/60' },
+      ];
+
+      const INITIAL_PENDING = [
+        { id: 'p1', title: 'Transferência Pix (Venda notebook)', amount: 1200, source: 'Outros', status: 'processing', date: '2026-06-17' },
+        { id: 'p2', title: 'Reembolso Despesas Viagem', amount: 340, source: 'Salário', status: 'awaiting_approval', date: '2026-06-16' }
+      ];
+
+      const INITIAL_RECEIVABLES = [
+        { id: 'r1', title: 'Salário Mensal Principal', amount: 3200, dueDate: '2026-07-05', source: 'Salário', reminderActive: true, status: 'pending' },
+        { id: 'r2', title: 'Aluguel Sublocação Sala', amount: 600, dueDate: '2026-07-10', source: 'Aluguel', reminderActive: false, status: 'pending' },
+        { id: 'r3', title: 'Projeto Design Figma (TechCorp)', amount: 1500, dueDate: '2026-07-15', source: 'Clientes / Freelas', reminderActive: true, status: 'pending' }
+      ];
+
+      const DEMO_TRANSACTIONS = [
+        { id: 't1', type: 'income', title: 'Salário Junho', amount: 3200, date: '2026-06-05', categoryOrSource: 'Salário' },
+        { id: 't2', type: 'expense', title: 'Supermercado Mensal', amount: 450, date: '2026-06-06', categoryOrSource: 'Alimentação' },
+        { id: 't3', type: 'expense', title: 'Combustível Carro', amount: 150, date: '2026-06-08', categoryOrSource: 'Transporte' },
+        { id: 't4', type: 'expense', title: 'Cinema e Jantar', amount: 120, date: '2026-06-10', categoryOrSource: 'Lazer' },
+        { id: 't5', type: 'expense', title: 'Mensalidade Aluguel', amount: 1400, date: '2026-06-01', categoryOrSource: 'Moradia' },
+        { id: 't6', type: 'income', title: 'Consultoria Desenvolvimento', amount: 850, date: '2026-06-12', categoryOrSource: 'Clientes / Freelas' },
+      ];
+
+      // Format Currency to PT-BR standards
+      const formatCurrency = (val) => {
+        return Number(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      };
+
+      // 1. FIRST LOGIN ONBOARDING SCREEN
+      function Onboarding({ onComplete }) {
+        const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+        const [incomeSources, setIncomeSources] = useState(DEFAULT_INCOME_SOURCES);
+        
+        const [newCatName, setNewCatName] = useState('');
+        const [newCatLimit, setNewCatLimit] = useState(500);
+        const [newCatColor, setNewCatColor] = useState('bg-[#ECF5FC] text-sky-800 border-sky-200/60');
+        
+        const [newSrcName, setNewSrcName] = useState('');
+        const [newSrcExpected, setNewSrcExpected] = useState(1000);
+        const [newSrcColor, setNewSrcColor] = useState('bg-[#EAF7EE] text-emerald-800 border-emerald-200/60');
+        
+        const [loadDemoData, setLoadDemoData] = useState(false);
+        const [activeSetupTab, setActiveSetupTab] = useState('expenses');
+
+        const pastelColorOptions = [
+          { name: 'Azul', bg: 'bg-[#ECF5FC] text-sky-800 border-sky-200/60' },
+          { name: 'Pêssego', bg: 'bg-[#FDF1EB] text-amber-800 border-orange-200/60' },
+          { name: 'Lilás', bg: 'bg-[#F5EEFB] text-purple-800 border-purple-200/60' },
+          { name: 'Verde', bg: 'bg-[#EAF7EE] text-emerald-800 border-emerald-200/60' },
+        ];
+
+        const handleAddCategory = (e) => {
+          e.preventDefault();
+          if (!newCatName.trim()) return;
+          const newCat = {
+            id: Date.now().toString(),
+            name: newCatName.trim(),
+            limit: Number(newCatLimit) || 0,
+            spent: 0,
+            color: newCatColor,
+          };
+          setCategories([...categories, newCat]);
+          setNewCatName('');
+          setNewCatLimit(500);
+        };
+
+        const handleAddSource = (e) => {
+          e.preventDefault();
+          if (!newSrcName.trim()) return;
+          const newSrc = {
+            id: Date.now().toString(),
+            name: newSrcName.trim(),
+            expectedAmount: Number(newSrcExpected) || 0,
+            color: newSrcColor,
+          };
+          setIncomeSources([...incomeSources, newSrc]);
+          setNewSrcName('');
+          setNewSrcExpected(1000);
+        };
+
+        const removeCategory = (id) => {
+          setCategories(categories.filter(c => c.id !== id));
+        };
+
+        const removeSource = (id) => {
+          setIncomeSources(incomeSources.filter(s => s.id !== id));
+        };
+
+        return (
+          <div id="onboarding-root" class="min-h-screen bg-[#FAF9F6] text-[#2D3436] py-12 px-6 flex flex-col justify-between items-center animate-fade-in">
+            {/* Headers / Description welcome */}
+            <div className="w-full max-w-4xl mx-auto text-center mt-4 mb-8">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#E0F2FE] text-[#0369A1] border border-[#7DD3FC]/40 text-xs font-semibold mb-4 tracking-wide shadow-2xs">
+                <Icon name="sparkles" className="w-3.5 h-3.5" />
+                Configurar Primeiro Acesso
+              </div>
+              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-[#1A1A1A] mb-4">
+                Bem-vindo ao seu App de Finanças!
+              </h1>
+              <p className="text-base md:text-lg text-[#636E72] max-w-2xl mx-auto leading-relaxed">
+                Vamos planejar e organizar suas despesas para você entender exatamente <strong>de onde sai o seu dinheiro</strong>.
+              </p>
+            </div>
+
+            {/* Empty Bento Cards illustrative values strictly zeroes as requested */}
+            <div className="w-full max-w-4xl mx-auto mb-8 space-y-4">
+              <span className="text-xs font-bold tracking-wider text-[#636E72]/80 uppercase block text-center">
+                Visualização Inicial do Bento Grid Zerado
+              </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Pending */}
+                <div className="bg-[#F3E8FF] rounded-[30px] p-6 border-2 border-[#D8B4FE] flex flex-col justify-between min-h-[140px] transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-purple-600 shadow-sm">
+                      <Icon name="clock" className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-lg font-bold text-[#5B21B6]">Receber Pendente</h3>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-xs text-[#7C3AED] font-medium uppercase tracking-wider mb-0.5">Em Compensação</p>
+                    <p className="text-3xl font-extrabold text-[#4C1D95]">R$ 0,00</p>
+                  </div>
+                </div>
+
+                {/* Revenue */}
+                <div className="bg-[#DCFCE7] rounded-[30px] p-6 border-2 border-[#86EFAC] flex flex-col justify-between min-h-[140px] transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm">
+                      <Icon name="trending-up" className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-lg font-bold text-[#166534]">Receita</h3>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-xs text-[#15803D] font-medium uppercase tracking-wider mb-0.5">Confirmadas</p>
+                    <p className="text-3xl font-extrabold text-[#064E3B]">R$ 0,00</p>
+                  </div>
+                </div>
+
+                {/* Receivables future */}
+                <div className="bg-[#FFEDD5] rounded-[30px] p-6 border-2 border-[#FDBA74] flex flex-col justify-between min-h-[140px] transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-amber-600 shadow-sm">
+                      <Icon name="calendar" className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-lg font-bold text-[#9A3412]">A Receber</h3>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-xs text-[#C2410C] font-semibold uppercase tracking-wider mb-0.5">Agendamentos Futuros</p>
+                    <p className="text-3xl font-extrabold text-[#7C2D12]">R$ 0,00</p>
+                  </div>
+                </div>
+
+                {/* Expenses */}
+                <div className="bg-[#E0F2FE] rounded-[30px] p-6 border-2 border-[#7DD3FC] flex flex-col justify-between min-h-[140px] transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-sky-600 shadow-sm">
+                      <Icon name="trending-down" className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-lg font-bold text-[#075985]">Gastos</h3>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-xs text-[#0369A1] font-semibold uppercase tracking-wider mb-0.5">Total Planejado/Excedido</p>
+                    <p className="text-3xl font-extrabold text-[#0C4A6E]">R$ 0,00</p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Setup Controls Container */}
+            <div className="w-full max-w-4xl bg-white p-6 sm:p-8 rounded-3xl border border-[#FAF9F6] shadow-sm mb-12">
+              
+              {/* Tabs selector */}
+              <div className="flex bg-slate-100 p-1.5 rounded-2xl gap-1.5 max-w-sm mx-auto mb-6">
+                <button
+                  type="button"
+                  onClick={() => setActiveSetupTab('expenses')}
+                  className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all ${
+                    activeSetupTab === 'expenses' ? 'bg-[#E0F2FE] text-[#0369A1] shadow-2xs' : 'text-[#636E72] hover:text-[#2D3436]'
+                  }`}
+                >
+                  Limites das Categorias
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveSetupTab('revenue')}
+                  className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all ${
+                    activeSetupTab === 'revenue' ? 'bg-[#EAF7EE] text-[#15803D] shadow-2xs' : 'text-[#636E72] hover:text-[#2D3436]'
+                  }`}
+                >
+                  Fontes de Renda
+                </button>
+              </div>
+
+              {/* Tab Content: Expenses setup categories */}
+              {activeSetupTab === 'expenses' && (
+                <div className="space-y-6">
+                  <p className="text-xs text-[#636E72] text-center max-w-md mx-auto">
+                    Configure os limites máximos de gastos para o cálculo do aviso de orçamento. Sua conta começa zerada.
+                  </p>
+                  
+                  {/* Category lists */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {categories.map(cat => (
+                      <div key={cat.id} className={`flex items-center justify-between p-3.5 border rounded-2xl ${cat.color}`}>
+                        <div className="flex flex-col">
+                          <span className="font-extrabold text-sm">{cat.name}</span>
+                          <span className="text-[10px] font-semibold opacity-70">Teto Planejado: {formatCurrency(cat.limit)}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeCategory(cat.id)}
+                          className="p-1.5 hover:bg-white/50 rounded-xl transition-all text-red-700 cursor-pointer"
+                        >
+                          <Icon name="trash" className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Quick Add Custom Category Form */}
+                  <form onSubmit={handleAddCategory} className="bg-[#FAF9F6] p-4 rounded-3xl border border-slate-200/50 space-y-3">
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">Adicionar Nova Categoria</span>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ex: Assinaturas / Estudo"
+                        value={newCatName}
+                        onChange={(e) => setNewCatName(e.target.value)}
+                        className="bg-white px-3.5 py-2 text-xs rounded-xl border border-slate-350 focus:outline-none flex-1"
+                      />
+                      <input
+                        type="number"
+                        required
+                        placeholder="Limite R$"
+                        value={newCatLimit}
+                        onChange={(e) => setNewCatLimit(Number(e.target.value))}
+                        className="bg-white px-3.5 py-2 text-xs rounded-xl border border-slate-350 focus:outline-none w-32"
+                      />
+                      <select
+                        value={newCatColor}
+                        onChange={(e) => setNewCatColor(e.target.value)}
+                        className="bg-white px-3 py-2 text-xs rounded-xl border border-slate-350 focus:outline-none"
+                      >
+                        {pastelColorOptions.map(col => (
+                          <option key={col.bg} value={col.bg}>{col.name}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="submit"
+                        className="bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-slate-800 transition-all cursor-pointer flex items-center justify-center gap-1 shrink-0"
+                      >
+                        <Icon name="plus" className="w-4 h-4" /> Incluir
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* Tab Content: Revenue Setup Sources */}
+              {activeSetupTab === 'revenue' && (
+                <div className="space-y-6">
+                  <p className="text-xs text-[#636E72] text-center max-w-md mx-auto">
+                    Determine suas fontes esperadas de recebimentos e prospecções para organizar o fluxo de entrada.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {incomeSources.map(src => (
+                      <div key={src.id} className={`flex items-center justify-between p-3.5 border rounded-2xl ${src.color}`}>
+                        <div className="flex flex-col">
+                          <span className="font-extrabold text-sm">{src.name}</span>
+                          <span className="text-[10px] font-semibold opacity-70">Meta Mensal: {formatCurrency(src.expectedAmount)}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeSource(src.id)}
+                          className="p-1.5 hover:bg-white/50 rounded-xl transition-all text-red-700 cursor-pointer"
+                        >
+                          <Icon name="trash" className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add Source form */}
+                  <form onSubmit={handleAddSource} className="bg-[#FAF9F6] p-4 rounded-3xl border border-slate-200/50 space-y-3">
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">Adicionar Nova Origem de Renda</span>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ex: Trabalho Remoto"
+                        value={newSrcName}
+                        onChange={(e) => setNewSrcName(e.target.value)}
+                        className="bg-white px-3.5 py-2 text-xs rounded-xl border border-slate-350 focus:outline-none flex-1"
+                      />
+                      <input
+                        type="number"
+                        required
+                        placeholder="Meta R$"
+                        value={newSrcExpected}
+                        onChange={(e) => setNewSrcExpected(Number(e.target.value))}
+                        className="bg-white px-3.5 py-2 text-xs rounded-xl border border-slate-350 focus:outline-none w-32"
+                      />
+                      <select
+                        value={newSrcColor}
+                        onChange={(e) => setNewSrcColor(e.target.value)}
+                        className="bg-white px-3 py-2 text-xs rounded-xl border border-slate-350 focus:outline-none"
+                      >
+                        {pastelColorOptions.map(col => (
+                          <option key={col.bg} value={col.bg}>{col.name}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="submit"
+                        className="bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-slate-800 transition-all cursor-pointer flex items-center justify-center gap-1 shrink-0"
+                      >
+                        <Icon name="plus" className="w-4 h-4" /> Incluir
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {/* Demo load activation check */}
+              <div className="border-t border-slate-100 pt-5 mt-6 flex flex-col items-center gap-2">
+                <label className="inline-flex items-center gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={loadDemoData}
+                    onChange={(e) => setLoadDemoData(e.target.checked)}
+                    className="w-4.5 h-4.5 accent-sky-600 rounded text-sky-600 focus:ring-0 cursor-pointer"
+                  />
+                  <span className="text-xs font-bold text-slate-700">
+                    Desejo preencher os painéis com dados de teste/demonstração históricos (Exemplo)
+                  </span>
+                </label>
+                <p className="text-[10px] text-slate-400">
+                  Deixe desmarcado para começar com o balanço absolutamente <strong>zerado (R$ 0,00)</strong>.
+                </p>
+              </div>
+
+            </div>
+
+            {/* Giant Centered Pastel Blue Footer Button as styled by Bento Grid design theme */}
+            <div className="w-full flex flex-col items-center gap-2 mt-6 mb-8">
+              <button
+                type="button"
+                id="btn-confirm-onboarding"
+                onClick={() => onComplete({ categories, incomeSources, loadDemo: loadDemoData })}
+                className="bg-[#BAE6FD] hover:bg-[#7DD3FC] text-[#0369A1] text-lg font-bold py-5 px-16 rounded-full border-b-4 border-[#7DD3FC] shadow-lg active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-3.5 cursor-pointer"
+              >
+                <span>Vamos começar a organizar!</span>
+                <Icon name="arrow-right" className="w-5.5 h-5.5 animate-pulse" />
+              </button>
+              <p className="text-[10px] text-[#636E72] font-mono tracking-wider uppercase mt-2">
+                Dê o primeiro passo para o controle financeiro hoje
+              </p>
+            </div>
+
+          </div>
+        );
+      }
+
+      // 2. MAIN ACTIVE DASHBOARD VIEW
+      function Dashboard({ categories: startingCategories, incomeSources: startingSources, initialPending, initialReceivables, initialTransactions, onReset }) {
+        const [categories, setCategories] = useState(startingCategories);
+        const [incomeSources, setIncomeSources] = useState(startingSources);
+        const [pendingReceipts, setPendingReceipts] = useState(initialPending);
+        const [receivables, setReceivables] = useState(initialReceivables);
+        const [transactions, setTransactions] = useState(initialTransactions);
+
+        const [focusedSection, setFocusedSection] = useState('expenses');
+        const [searchTerm, setSearchTerm] = useState('');
+        const [typeFilter, setTypeFilter] = useState('all');
+        const [toastMessage, setToastMessage] = useState(null);
+
+        // Transaction dialog state
+        const [showAddTransactionModal, setShowAddTransactionModal] = useState(false);
+        const [txType, setTxType] = useState('expense');
+        const [txTitle, setTxTitle] = useState('');
+        const [txAmount, setTxAmount] = useState('');
+        const [txCategoryOrSource, setTxCategoryOrSource] = useState('');
+        const [txDate, setTxDate] = useState(new Date().toISOString().split('T')[0]);
+
+        // Quick inputs
+        const [newPendingTitle, setNewPendingTitle] = useState('');
+        const [newPendingAmount, setNewPendingAmount] = useState('');
+        const [newPendingSource, setNewPendingSource] = useState('');
+
+        const [newReceivableTitle, setNewReceivableTitle] = useState('');
+        const [newReceivableAmount, setNewReceivableAmount] = useState('');
+        const [newReceivableDate, setNewReceivableDate] = useState('');
+        const [newReceivableSource, setNewReceivableSource] = useState('');
+
+        // Synchronize with LocalStorage on any interaction change
+        useEffect(() => {
+          localStorage.setItem('finance_categories', JSON.stringify(categories));
+          localStorage.setItem('finance_income_sources', JSON.stringify(incomeSources));
+          localStorage.setItem('finance_pending_receipts', JSON.stringify(pendingReceipts));
+          localStorage.setItem('finance_receivables', JSON.stringify(receivables));
+          localStorage.setItem('finance_transactions', JSON.stringify(transactions));
+        }, [categories, incomeSources, pendingReceipts, receivables, transactions]);
+
+        const triggerToast = (msg) => {
+          setToastMessage(msg);
+          setTimeout(() => setToastMessage(null), 3500);
+        };
+
+        // Aggregated Metrics
+        const totalPendingSum = useMemo(() => {
+          return pendingReceipts.reduce((sum, item) => sum + Number(item.amount), 0);
+        }, [pendingReceipts]);
+
+        const totalRevenueSum = useMemo(() => {
+          return transactions
+            .filter(t => t.type === 'income')
+            .reduce((sum, item) => sum + Number(item.amount), 0);
+        }, [transactions]);
+
+        const totalReceivableSum = useMemo(() => {
+          return receivables
+            .filter(r => r.status === 'pending')
+            .reduce((sum, item) => sum + Number(item.amount), 0);
+        }, [receivables]);
+
+        const totalExpensesSum = useMemo(() => {
+          return transactions
+            .filter(t => t.type === 'expense')
+            .reduce((sum, item) => sum + Number(item.amount), 0);
+        }, [transactions]);
+
+        // Updated spent indicator for categories based on active transactions log
+        const updatedCategories = useMemo(() => {
+          return categories.map(cat => {
+            const totalSpentForCat = transactions
+              .filter(t => t.type === 'expense' && t.categoryOrSource === cat.name)
+              .reduce((sum, item) => sum + Number(item.amount), 0);
+            return {
+              ...cat,
+              spent: totalSpentForCat
+            };
+          });
+        }, [categories, transactions]);
+
+        const sourceRealizedSales = useMemo(() => {
+          const stats = {};
+          incomeSources.forEach(src => {
+            stats[src.name] = transactions
+              .filter(t => t.type === 'income' && t.categoryOrSource === src.name)
+              .reduce((sum, item) => sum + Number(item.amount), 0);
+          });
+          return stats;
+        }, [incomeSources, transactions]);
+
+        const filteredTransactions = useMemo(() => {
+          return transactions.filter(tx => {
+            const matchSearch = tx.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                tx.categoryOrSource.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchType = typeFilter === 'all' ? true : tx.type === typeFilter;
+            return matchSearch && matchType;
+          }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        }, [transactions, searchTerm, typeFilter]);
+
+        const getUrgentWarnings = useMemo(() => {
+          return updatedCategories.filter(c => c.spent > c.limit);
+        }, [updatedCategories]);
+
+        // Evolution Flow calculations (past 7 days timeline)
+        const chartData = useMemo(() => {
+          const days = [];
+          for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            days.push(d.toISOString().split('T')[0]);
+          }
+          return days.map(dayStr => {
+            const dayTransactions = transactions.filter(t => t.date === dayStr);
+            const inc = dayTransactions.filter(t => t.type === 'income').reduce((s, item) => s + Number(item.amount), 0);
+            const exp = dayTransactions.filter(t => t.type === 'expense').reduce((s, item) => s + Number(item.amount), 0);
+            return {
+              label: dayStr.split('-').slice(1, 3).reverse().join('/'),
+              income: inc,
+              expense: exp,
+            };
+          });
+        }, [transactions]);
+
+        // Action Handlers
+        const handleConfirmPending = (pendingId) => {
+          const pending = pendingReceipts.find(p => p.id === pendingId);
+          if (!pending) return;
+
+          setPendingReceipts(pendingReceipts.filter(p => p.id !== pendingId));
+          const newTx = {
+            id: `real-${Date.now()}`,
+            type: 'income',
+            title: `[Confirmado] ${pending.title}`,
+            amount: pending.amount,
+            date: new Date().toISOString().split('T')[0],
+            categoryOrSource: pending.source,
+          };
+          setTransactions(prev => [...prev, newTx]);
+          triggerToast(`Pix de R$ ${pending.amount.toFixed(2)} confirmado e incorporado ao saldo ativo!`);
+        };
+
+        const handleAddPending = (e) => {
+          e.preventDefault();
+          if (!newPendingTitle.trim() || !newPendingAmount) return;
+
+          const newPending = {
+            id: `p-${Date.now()}`,
+            title: newPendingTitle.trim(),
+            amount: Number(newPendingAmount),
+            source: newPendingSource || incomeSources[0]?.name || 'Outros',
+            status: 'pending',
+            date: new Date().toISOString().split('T')[0],
+          };
+          setPendingReceipts([...pendingReceipts, newPending]);
+          setNewPendingTitle('');
+          setNewPendingAmount('');
+          triggerToast('Novo pix em compensação registrado com sucesso!');
+        };
+
+        const handleReceiveReceivable = (receivableId) => {
+          const rec = receivables.find(r => r.id === receivableId);
+          if (!rec) return;
+
+          setReceivables(receivables.map(r => r.id === receivableId ? { ...r, status: 'received' } : r));
+          const newTx = {
+            id: `real-${Date.now()}`,
+            type: 'income',
+            title: `[Compromisso Recebido] ${rec.title}`,
+            amount: rec.amount,
+            date: new Date().toISOString().split('T')[0],
+            categoryOrSource: rec.source,
+          };
+          setTransactions(prev => [...prev, newTx]);
+          triggerToast(`Agendamento de R$ ${rec.amount.toFixed(2)} recebido e incorporado às receitas consolidadas!`);
+        };
+
+        const handleAddReceivable = (e) => {
+          e.preventDefault();
+          if (!newReceivableTitle.trim() || !newReceivableAmount || !newReceivableDate) return;
+
+          const newRec = {
+            id: `r-${Date.now()}`,
+            title: newReceivableTitle.trim(),
+            amount: Number(newReceivableAmount),
+            dueDate: newReceivableDate,
+            source: newReceivableSource || incomeSources[0]?.name || 'Outros',
+            reminderActive: true,
+            status: 'pending',
+          };
+          setReceivables([...receivables, newRec]);
+          setNewReceivableTitle('');
+          setNewReceivableAmount('');
+          setNewReceivableDate('');
+          triggerToast('Novo agendamento "A Receber" registrado com aviso sonoro!');
+        };
+
+        const toggleReminder = (id) => {
+          setReceivables(receivables.map(r => {
+            if (r.id === id) {
+              const current = !r.reminderActive;
+              triggerToast(current ? `Notificações ligadas para: ${r.title}` : `Aviso desativado para: ${r.title}`);
+              return { ...r, reminderActive: current };
+            }
+            return r;
+          }));
+        };
+
+        const handleCreateTransaction = (e) => {
+          e.preventDefault();
+          if (!txTitle.trim() || !txAmount) return;
+
+          const amount = Number(txAmount);
+          const sourceOrCat = txCategoryOrSource || (txType === 'expense' ? updatedCategories[0]?.name : incomeSources[0]?.name);
+
+          const newTx = {
+            id: `tx-${Date.now()}`,
+            type: txType,
+            title: txTitle.trim(),
+            amount,
+            date: txDate,
+            categoryOrSource: sourceOrCat,
+          };
+
+          setTransactions([...transactions, newTx]);
+          setShowAddTransactionModal(false);
+          setTxTitle('');
+          setTxAmount('');
+          setTxCategoryOrSource('');
+
+          if (txType === 'expense') {
+            const mat = updatedCategories.find(c => c.name === sourceOrCat);
+            if (mat && (mat.spent + amount) > mat.limit) {
+              triggerToast(`⚠️ Alerta: Categoria "${sourceOrCat}" excedeu o limite de ${formatCurrency(mat.limit)}!`);
+              return;
+            }
+          }
+          triggerToast(`Lançamento de ${txType === 'expense' ? 'Gasto' : 'Receita'} adicionado!`);
+        };
+
+        const handleDeleteTransaction = (id) => {
+          setTransactions(transactions.filter(t => t.id !== id));
+          triggerToast('Transação excluída permanentemente.');
+        };
+
+        return (
+          <div id="dashboard-root" class="min-h-screen bg-[#FAF9F6] text-[#2D3436] font-sans flex flex-col animate-fade-in">
+            
+            {/* Soft Toast Notification Overlay */}
+            {toastMessage && (
+              <div className="fixed bottom-6 right-6 z-50 bg-[#2D3436] text-[#FAF9F6] rounded-2xl p-4 shadow-2xl border border-slate-700/50 flex items-center gap-3 max-w-sm animate-pop-in">
+                <div className="p-1 rounded-full bg-emerald-500 text-white">
+                  <Icon name="check" className="w-4 h-4" />
+                </div>
+                <p className="text-xs font-bold leading-tight">{toastMessage}</p>
+              </div>
+            )}
+
+            {/* Main Header navigation */}
+            <header className="bg-white border-b border-slate-200/60 sticky top-0 z-40 backdrop-blur-md bg-white/95 shadow-2xs">
+              <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                
+                {/* Logo Section */}
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-[#D3E8FA] border border-sky-300 flex items-center justify-center text-sky-800 shadow-sm shrink-0">
+                    <Icon name="sparkles" className="w-6 h-6 text-sky-700" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h1 className="text-xl font-extrabold text-[#1A1A1A] tracking-tight">Finanças Pessoais</h1>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EAF7EE] text-emerald-700 border border-emerald-200/30">Painel Concluído</span>
+                    </div>
+                    <p className="text-xs text-slate-500">Controle de caixa bento grid elegante e acolhedor.</p>
+                  </div>
+                </div>
+
+                {/* Navigation and simulacao */}
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                  <button
+                    onClick={() => {
+                      setTxType('expense');
+                      setShowAddTransactionModal(true);
+                    }}
+                    className="px-4 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                  >
+                    <Icon name="plus" className="w-4 h-4" /> Registrar Caixa
+                  </button>
+                  <button
+                    onClick={onReset}
+                    className="px-3 py-2 text-xs font-bold text-purple-700 hover:text-purple-800 bg-[#F5EEFB] border border-purple-200/40 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                    title="Configurar categorias novamente"
+                  >
+                    <Icon name="rotate-ccw" className="w-3.5 h-3.5" strokeWidth={3} /> Reiniciar Setup
+                  </button>
+                </div>
+
+              </div>
+            </header>
+
+            {/* Overspent notifications and warnings */}
+            <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-8 space-y-8">
+              
+              {getUrgentWarnings.length > 0 && (
+                <div className="bg-rose-50 border-2 border-rose-200 rounded-3xl p-5 flex items-start gap-3.5 animate-pop-in">
+                  <div className="p-2 bg-rose-100 rounded-xl text-rose-600 self-start">
+                    <Icon name="alert-triangle" className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-rose-950 text-sm md:text-base">Aviso de Excesso de Orçamentos Estimados</h3>
+                    <p className="text-xs text-rose-800/90 mt-1 leading-relaxed">
+                      As seguintes categorias ultrapassaram os limites que você planejou no Primeiro Login:
+                      <strong className="block mt-1 font-semibold text-rose-900">
+                        {getUrgentWarnings.map(c => `${c.name} (${formatCurrency(c.spent)} de limit ${formatCurrency(c.limit)})`).join(', ')}
+                      </strong>
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Bento Grid 2x2 layout matching design guidelines */}
+              <div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-1.5">
+                  <span className="text-xs font-bold tracking-wider text-[#636E72]/85 uppercase block">Resumo Financeiro • Bento Grid</span>
+                  <span className="text-xs text-[#636E72]/70 font-medium">Toque em qualquer carta para abrir o seu respectivo painel abaixo</span>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  
+                  {/* Receber Pendente (Lilás) */}
+                  <div 
+                    onClick={() => setFocusedSection('pending')}
+                    className={`rounded-[40px] p-8 flex flex-col justify-between min-h-[190px] cursor-pointer transition-all border-2 ${
+                      focusedSection === 'pending' 
+                        ? 'bg-[#F3E8FF] border-[#C084FC] ring-8 ring-[#F3E8FF]/60 shadow-md scale-[1.01]' 
+                        : 'bg-[#F3E8FF]/90 border-[#D8B4FE]/85 hover:border-[#C084FC] hover:scale-[1.01] shadow-xs'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-purple-600 shadow-xs shrink-0">
+                        <Icon name="clock" className="w-7 h-7" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-[#5B21B6]">Receber Pendente</h3>
+                        <span className="text-xs text-[#7C3AED]/70 font-semibold">{pendingReceipts.length} transações aguardando</span>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex items-end justify-between">
+                      <div>
+                        <p className="text-xs text-[#7C3AED] font-semibold uppercase tracking-wider mb-1">Em Compensação / Pix</p>
+                        <p className="text-4xl font-extrabold text-[#4C1D95] font-mono">{formatCurrency(totalPendingSum)}</p>
+                      </div>
+                      <Icon name="chevron-right" className={`w-6 h-6 text-purple-600 transition-transform ${focusedSection === 'pending' ? 'translate-x-1.5' : ''}`} />
+                    </div>
+                  </div>
+
+                  {/* Receita Confirmed (Verde) */}
+                  <div 
+                    onClick={() => setFocusedSection('revenue')}
+                    className={`rounded-[40px] p-8 flex flex-col justify-between min-h-[190px] cursor-pointer transition-all border-2 ${
+                      focusedSection === 'revenue' 
+                        ? 'bg-[#DCFCE7] border-[#4ADE80] ring-8 ring-[#DCFCE7]/60 shadow-md scale-[1.01]' 
+                        : 'bg-[#DCFCE7]/90 border-[#86EFAC]/85 hover:border-[#4ADE80] hover:scale-[1.01] shadow-xs'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-emerald-600 shadow-xs shrink-0">
+                        <Icon name="trending-up" className="w-7 h-7" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-[#166534]">Receita</h3>
+                        <span className="text-xs text-[#15803D]/70 font-semibold">Balanço líquido confirmado</span>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex items-end justify-between">
+                      <div>
+                        <p className="text-xs text-[#15803D] font-semibold uppercase tracking-wider mb-1">Entradas Consolidadas</p>
+                        <p className="text-4xl font-extrabold text-[#064E3B] font-mono">{formatCurrency(totalRevenueSum)}</p>
+                      </div>
+                      <Icon name="chevron-right" className={`w-6 h-6 text-emerald-600 transition-transform ${focusedSection === 'revenue' ? 'translate-x-1.5' : ''}`} />
+                    </div>
+                  </div>
+
+                  {/* A Receber Future (Pêssego) */}
+                  <div 
+                    onClick={() => setFocusedSection('receivables')}
+                    className={`rounded-[40px] p-8 flex flex-col justify-between min-h-[190px] cursor-pointer transition-all border-2 ${
+                      focusedSection === 'receivables' 
+                        ? 'bg-[#FFEDD5] border-[#FB923C] ring-8 ring-[#FFEDD5]/60 shadow-md scale-[1.01]' 
+                        : 'bg-[#FFEDD5]/90 border-[#FDBA74]/85 hover:border-[#FB923C] hover:scale-[1.01] shadow-xs'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-amber-600 shadow-xs shrink-0">
+                        <Icon name="calendar" className="w-7 h-7" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-[#9A3412]">A Receber</h3>
+                        <span className="text-xs text-[#C2410C]/70 font-semibold">Compromissos e metas agendadas</span>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex items-end justify-between">
+                      <div>
+                        <p className="text-xs text-[#C2410C] font-semibold uppercase tracking-wider mb-1">Previsão Acumulada</p>
+                        <p className="text-4xl font-extrabold text-[#7C2D12] font-mono">{formatCurrency(totalReceivableSum)}</p>
+                      </div>
+                      <Icon name="chevron-right" className={`w-6 h-6 text-amber-600 transition-transform ${focusedSection === 'receivables' ? 'translate-x-1.5' : ''}`} />
+                    </div>
+                  </div>
+
+                  {/* Gastos (Azul) */}
+                  <div 
+                    onClick={() => setFocusedSection('expenses')}
+                    className={`rounded-[40px] p-8 flex flex-col justify-between min-h-[190px] cursor-pointer transition-all border-2 ${
+                      focusedSection === 'expenses' 
+                        ? 'bg-[#E0F2FE] border-[#38BDF8] ring-8 ring-[#E0F2FE]/60 shadow-md scale-[1.01]' 
+                        : 'bg-[#E0F2FE]/90 border-[#7DD3FC]/85 hover:border-[#38BDF8] hover:scale-[1.01] shadow-xs'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-sky-600 shadow-xs shrink-0">
+                        <Icon name="trending-down" className="w-7 h-7" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-[#075985]">Gastos</h3>
+                        <span className="text-xs text-[#0369A1]/70 font-semibold">Consumo ativo do caixa</span>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex items-end justify-between">
+                      <div>
+                        <p className="text-xs text-[#0369A1] font-semibold uppercase tracking-wider mb-1">Despesas Consolidadas</p>
+                        <p className="text-4xl font-extrabold text-[#0C4A6E] font-mono">{formatCurrency(totalExpensesSum)}</p>
+                      </div>
+                      <Icon name="chevron-right" className={`w-6 h-6 text-sky-600 transition-transform ${focusedSection === 'expenses' ? 'translate-x-1.5' : ''}`} />
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Double-column: Timeline and Analytics vs Categories budget limits chart */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                {/* SVG Line visualization timeline for past 7 days */}
+                <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm lg:col-span-2 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base font-bold text-[#1A1A1A]">Fluxo de Caixa Evolutivo</h3>
+                      <p className="text-xs text-slate-500">Fluxos financeiros históricos agrupados nos últimos 7 dias.</p>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs">
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <span className="w-3 h-3 rounded bg-emerald-400 inline-block"></span>
+                        <span className="text-slate-600">Entradas</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 font-bold">
+                        <span className="w-3 h-3 rounded bg-sky-400 inline-block"></span>
+                        <span className="text-slate-600">Gastos</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Interactive SVG timeline */}
+                  <div className="h-64 w-full relative pt-2">
+                    <svg className="w-full h-full" viewBox="0 0 540 180" preserveAspectRatio="none">
+                      <line x1="20" y1="20" x2="520" y2="20" stroke="#f1f5f9" strokeWidth="1" />
+                      <line x1="20" y1="70" x2="520" y2="70" stroke="#f1f5f9" strokeWidth="1" />
+                      <line x1="20" y1="120" x2="520" y2="120" stroke="#f1f5f9" strokeWidth="1" />
+                      <line x1="20" y1="160" x2="520" y2="160" stroke="#f8fafc" strokeWidth="1.5" />
+
+                      <text x="5" y="24" className="text-[9px] fill-slate-350 font-mono font-bold">R$ 4k</text>
+                      <text x="5" y="74" className="text-[9px] fill-slate-350 font-mono font-bold">R$ 2k</text>
+                      <text x="5" y="124" className="text-[9px] fill-slate-350 font-mono font-bold">R$ 0</text>
+
+                      {chartData.map((day, idx) => {
+                        const padding = 65;
+                        const x = 50 + idx * padding;
+                        const scale = 4500;
+                        const revY = 160 - (Math.min(day.income, scale) / scale) * 130;
+                        const expY = 160 - (Math.min(day.expense, scale) / scale) * 130;
+
+                        return (
+                          <g key={day.label}>
+                            {day.income > 0 && (
+                              <rect x={x - 8} y={revY} width="7" height={160 - revY} fill="#D4F0DB" stroke="#a7e3b6" strokeWidth="0.5" rx="2" />
+                            )}
+                            {day.expense > 0 && (
+                              <rect x={x + 1} y={expY} width="7" height={160 - expY} fill="#D3E8FA" stroke="#9fcbf5" strokeWidth="0.5" rx="2" />
+                            )}
+                            {day.income > 0 && <circle cx={x - 4.5} cy={revY} r="2.5" fill="#10b981" />}
+                            {day.expense > 0 && <circle cx={x + 4.5} cy={expY} r="2.5" fill="#0284c7" />}
+                            <text x={x} y="176" textAnchor="middle" className="text-[10px] fill-slate-450 font-semibold font-mono">{day.label}</text>
+                          </g>
+                        );
+                      })}
+                    </svg>
+
+                    {/* DRY/empty notification indicator if true starting values are absolutely empty */}
+                    {totalRevenueSum === 0 && totalExpensesSum === 0 && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-[#FAF9F6]/50 rounded-2xl border border-slate-100/50 backdrop-blur-[1px] text-center p-4">
+                        <div className="max-w-xs">
+                          <p className="text-xs font-bold text-slate-705 flex items-center justify-center gap-1.5">
+                            <Icon name="thumbs-up" className="w-4 h-4 text-emerald-600" />
+                            Ambiente pronto para novos lançamentos
+                          </p>
+                          <p className="text-[10px] text-slate-400 mt-1 leading-normal">
+                            Preencha novos dados com os botões rápidos do topo ou painéis inferiores.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Left side column: Progress limits breakdown checking "De onde sai o dinheiro" */}
+                <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-base font-bold text-[#1A1A1A] flex items-center justify-between">
+                        <span>Limites Ativos</span>
+                        <span className="text-[10px] uppercase font-bold text-sky-700 tracking-wider">Gastos</span>
+                      </h3>
+                      <p className="text-xs text-slate-500">Progresso consumido comparado com limites.</p>
+                    </div>
+
+                    <div className="space-y-4 pt-2">
+                      {updatedCategories.map(cat => {
+                        const pct = Math.min((cat.spent / cat.limit) * 100, 100);
+                        const isOver = cat.spent > cat.limit;
+                        return (
+                          <div key={cat.id} className="space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-bold text-slate-800">{cat.name}</span>
+                              <div className="font-mono text-[11px] text-slate-500">
+                                <span className={`${isOver ? 'text-rose-600 font-extrabold' : 'text-slate-800 font-bold'}`}>
+                                  {formatCurrency(cat.spent)}
+                                </span>{' '}
+                                / <span className="text-slate-400">{formatCurrency(cat.limit)}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-250/10">
+                              <div 
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                  isOver ? 'bg-rose-500' : pct > 80 ? 'bg-amber-400' : 'bg-sky-400'
+                                }`} 
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+
+                            {/* Alert labels helper */}
+                            {isOver ? (
+                              <div className="flex items-center gap-1 text-[9px] font-bold text-rose-600">
+                                <Icon name="alert-triangle" className="w-3 h-3" /> Excedeu teto em {formatCurrency(cat.spent - cat.limit)}
+                              </div>
+                            ) : pct > 80 ? (
+                              <div className="flex items-center gap-1 text-[9px] font-bold text-amber-500">
+                                <Icon name="alert-triangle" className="w-3 h-3" /> Restam apenas {formatCurrency(cat.limit - cat.spent)}
+                              </div>
+                            ) : (
+                              <div className="text-[9px] text-[#636E72]">Até agora consumiu {pct.toFixed(0)}% planejado</div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-100 mt-4">
+                    <button 
+                      onClick={() => {
+                        setTxType('expense');
+                        setShowAddTransactionModal(true);
+                      }}
+                      className="w-full text-center py-2 text-xs font-bold text-slate-600 bg-[#FAF9F6] hover:bg-slate-100 rounded-xl transition-all flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <span>Registrar Saída</span>
+                      <Icon name="chevron-right" className="w-4 h-4 text-slate-500" />
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Log table and transaction detail lists selector banner */}
+              <div className="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
+                <div className="bg-[#FAF9F6] border-b border-slate-200/60 p-4 flex flex-wrap items-center justify-between gap-3">
+                  
+                  {/* Selector Segment Buttons */}
+                  <div className="flex bg-white p-1 rounded-2xl border border-slate-200/50 shadow-2xs">
+                    <button
+                      onClick={() => setFocusedSection('expenses')}
+                      className={`px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+                        focusedSection === 'expenses' ? 'bg-[#ECF5FC] text-sky-800 shadow-2xs' : 'text-[#636E72] hover:text-[#2D3436]'
+                      }`}
+                    >
+                      <Icon name="trending-down" className="w-4 h-4" /> Gastos
+                    </button>
+                    <button
+                      onClick={() => setFocusedSection('revenue')}
+                      className={`px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+                        focusedSection === 'revenue' ? 'bg-[#EAF7EE] text-emerald-800 shadow-2xs' : 'text-[#636E72] hover:text-[#2D3436]'
+                      }`}
+                    >
+                      <Icon name="trending-up" className="w-4 h-4" /> Receitas
+                    </button>
+                    <button
+                      onClick={() => setFocusedSection('receivables')}
+                      className={`px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+                        focusedSection === 'receivables' ? 'bg-[#FDF1EB] text-amber-800 shadow-2xs' : 'text-[#636E72] hover:text-[#2D3436]'
+                      }`}
+                    >
+                      <Icon name="calendar" className="w-4 h-4" /> A Receber
+                    </button>
+                    <button
+                      onClick={() => setFocusedSection('pending')}
+                      className={`px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+                        focusedSection === 'pending' ? 'bg-[#F5EEFB] text-purple-800 shadow-2xs' : 'text-[#636E72] hover:text-[#2D3436]'
+                      }`}
+                    >
+                      <Icon name="clock" className="w-4 h-4" /> Receber Pendente
+                    </button>
+                  </div>
+
+                  <span className="text-[10px] font-bold text-slate-400 font-mono uppercase">DETALHAMENTO INTERATIVO</span>
+                </div>
+
+                <div className="p-6">
+                  
+                  {/* DETAIL BOXES: GASTOS */}
+                  {focusedSection === 'expenses' && (
+                    <div className="space-y-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-rose-100/50 pb-4">
+                        <div>
+                          <h3 className="text-base font-bold text-slate-950">Histórico de Despesas Caixa</h3>
+                          <p className="text-xs text-slate-500">Lista completa com filtros de pesquisa rápidos na busca de gastos.</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setTxType('expense');
+                            setShowAddTransactionModal(true);
+                          }}
+                          className="self-start px-3.5 py-2 text-xs font-bold text-sky-800 bg-[#ECF5FC] border border-sky-300 rounded-xl hover:bg-[#D3E8FA] flex items-center gap-1 cursor-pointer"
+                        >
+                          <Icon name="plus" className="w-4 h-4" /> Novo Lançamento Gasto
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 space-y-4">
+                          {/* Search controller */}
+                          <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-150">
+                            <div className="relative flex-1">
+                              <Icon name="search" className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                              <input
+                                type="text"
+                                placeholder="Pesquisar nos gastos ou categorias..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-1.5 text-xs focus:outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Data Lists layout */}
+                          <div className="space-y-2">
+                            {filteredTransactions.filter(t => t.type === 'expense').length === 0 ? (
+                              <div className="text-center py-12 bg-slate-50 border border-slate-100 rounded-2xl">
+                                <p className="text-xs font-bold text-slate-500">Nenhum gasto correspondente registrado.</p>
+                              </div>
+                            ) : (
+                              filteredTransactions.filter(t => t.type === 'expense').map(tx => (
+                                <div key={tx.id} className="flex items-center justify-between p-3.5 bg-white border border-slate-100/80 rounded-2xl hover:shadow-2xs transition-all animate-pop-in">
+                                  <div className="flex items-center gap-3">
+                                    <div className="p-2.5 rounded-xl bg-orange-50 text-orange-600">
+                                      <Icon name="trending-down" className="w-4.5 h-4.5" />
+                                    </div>
+                                    <div>
+                                      <h4 className="text-sm font-bold text-slate-800">{tx.title}</h4>
+                                      <div className="flex items-center gap-1.5 mt-0.5">
+                                        <span className="px-2 py-0.5 bg-slate-100 text-[9px] font-bold text-slate-600 rounded">
+                                          {tx.categoryOrSource}
+                                        </span>
+                                        <span className="text-[10px] text-slate-400 font-mono font-medium">
+                                          {tx.date.split('-').reverse().join('/')}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-sm font-extrabold text-[#1A1A1A] font-mono">-{formatCurrency(tx.amount)}</span>
+                                    <button 
+                                      onClick={() => handleDeleteTransaction(tx.id)}
+                                      className="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
+                                    >
+                                      <Icon name="trash" className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Limit targets side widgets */}
+                        <div className="bg-slate-50/50 rounded-2xl border border-slate-100 p-5 space-y-4 h-fit">
+                          <span className="text-xs font-bold text-[#636E72] uppercase tracking-wider block">Metas de Contenção</span>
+                          <p className="text-[11.5px] text-slate-500 leading-relaxed">
+                            Seus tetos de aviso para monitorar de onde sai o seu dinheiro definidos no primeiro login:
+                          </p>
+                          <div className="space-y-2">
+                            {updatedCategories.map(cat => (
+                              <div key={cat.id} className="p-3 bg-white rounded-xl border border-slate-100 flex items-center justify-between">
+                                <div>
+                                  <span className="text-xs font-bold block text-slate-800">{cat.name}</span>
+                                  <span className="text-[10px] font-mono text-slate-400">Teto: {formatCurrency(cat.limit)}</span>
+                                </div>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${cat.spent > cat.limit ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600'}`}>
+                                  {cat.spent > 0 ? formatCurrency(cat.spent) : 'R$ 0,00'}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DETAIL BOXES: RECEITAS */}
+                  {focusedSection === 'revenue' && (
+                    <div className="space-y-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-emerald-100/50 pb-4">
+                        <div>
+                          <h3 className="text-base font-bold text-slate-950">Acompanhamento de Receitas Liquidadas</h3>
+                          <p className="text-xs text-slate-500">Entradas consolidadas no balanço ativo.</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setTxType('income');
+                            setShowAddTransactionModal(true);
+                          }}
+                          className="self-start px-3.5 py-2 text-xs font-bold text-emerald-800 bg-[#EAF7EE] border border-emerald-300 rounded-xl hover:bg-[#D4F0DB] flex items-center gap-1 cursor-pointer"
+                        >
+                          <Icon name="plus" className="w-4 h-4" /> Novo Lançamento Receita
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 space-y-2">
+                          {filteredTransactions.filter(t => t.type === 'income').length === 0 ? (
+                            <div className="text-center py-12 bg-[#FAF9F6] border border-slate-100/80 rounded-2xl">
+                              <p className="text-xs font-bold text-slate-400">Sem receitas consolidadas registradas ainda.</p>
+                            </div>
+                          ) : (
+                            filteredTransactions.filter(t => t.type === 'income').map(tx => (
+                              <div key={tx.id} className="flex items-center justify-between p-3.5 bg-white border border-slate-100 rounded-2xl hover:shadow-2xs transition-all animate-pop-in">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600">
+                                    <Icon name="trending-up" className="w-4.5 h-4.5" />
+                                  </div>
+                                  <div>
+                                    <h4 className="text-sm font-bold text-slate-800">{tx.title}</h4>
+                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                      <span className="px-2 py-0.5 bg-emerald-50 text-[9px] font-bold text-emerald-700 rounded border border-emerald-200/20">
+                                        {tx.categoryOrSource}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400 font-mono font-medium">{tx.date.split('-').reverse().join('/')}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm font-extrabold text-emerald-700 font-mono">+{formatCurrency(tx.amount)}</span>
+                                  <button 
+                                    onClick={() => handleDeleteTransaction(tx.id)}
+                                    className="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
+                                  >
+                                    <Icon name="trash" className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+
+                        {/* Revenue tracking details */}
+                        <div className="bg-slate-50/50 rounded-2xl border border-slate-100 p-5 space-y-4 h-fit">
+                          <span className="text-xs font-bold text-[#636E72] uppercase tracking-wider block">Atingimento por Fonte</span>
+                          <div className="space-y-3">
+                            {incomeSources.map(src => {
+                              const realized = sourceRealizedSales[src.name] || 0;
+                              const pct = Math.min((realized / src.expectedAmount) * 100, 100);
+                              return (
+                                <div key={src.id} className="p-3 bg-white rounded-xl border border-slate-100 space-y-1.5">
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="font-bold text-slate-705">{src.name}</span>
+                                    <span className="font-bold text-emerald-700 font-mono">{formatCurrency(realized)}</span>
+                                  </div>
+                                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="h-full bg-emerald-450 rounded-full bg-emerald-500" style={{ width: `${pct}%` }}></div>
+                                  </div>
+                                  <div className="flex justify-between text-[9px] text-slate-400">
+                                    <span>Objetivo Estimado</span>
+                                    <span className="font-mono">{formatCurrency(src.expectedAmount)}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DETAIL BOXES: A RECEBER */}
+                  {focusedSection === 'receivables' && (
+                    <div className="space-y-6">
+                      <div className="border-b border-amber-100 pb-4">
+                        <h3 className="text-base font-bold text-slate-950">Salários e Entradas Agendadas</h3>
+                        <p className="text-xs text-slate-500">Prossiga com recebimentos imediatos ao caixa ativo ou configure alertas.</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 space-y-2">
+                          {receivables.filter(r => r.status === 'pending').length === 0 ? (
+                            <div className="text-center py-10 bg-[#FAF9F6] border border-slate-100 rounded-2xl">
+                              <p className="text-xs font-bold text-slate-450">Nenhum agendamento futuro em aberto.</p>
+                            </div>
+                          ) : (
+                            receivables.filter(r => r.status === 'pending').map(rec => (
+                              <div key={rec.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl gap-3 hover:shadow-2xs transition-all animate-pop-in">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 bg-orange-50 text-orange-600 rounded-xl">
+                                    <Icon name="calendar" className="w-5 h-5" />
+                                  </div>
+                                  <div>
+                                    <h4 className="text-sm font-bold text-slate-800">{rec.title}</h4>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <span className="px-2 py-0.5 bg-[#FFEDD5] text-[9px] font-bold text-amber-800 rounded">
+                                        {rec.source}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400 font-semibold font-mono">
+                                        Vence: {rec.dueDate.split('-').reverse().join('/')}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center justify-between sm:justify-end gap-3.5 border-t sm:border-0 pt-2 sm:pt-0 border-slate-150">
+                                  <span className="text-sm font-extrabold text-[#1A1A1A] font-mono">{formatCurrency(rec.amount)}</span>
+                                  <div className="flex items-center gap-2">
+                                    {/* Bell toggle */}
+                                    <button 
+                                      onClick={() => toggleReminder(rec.id)}
+                                      className={`p-1.5 rounded-lg transition-all cursor-pointer ${rec.reminderActive ? 'bg-amber-50 text-amber-500' : 'text-slate-300'}`}
+                                      title={rec.reminderActive ? 'Clareza com Alerta Ativo' : 'Ativar o Alerta do vencimento'}
+                                    >
+                                      <Icon name={rec.reminderActive ? 'bell' : 'bell-off'} className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleReceiveReceivable(rec.id)}
+                                      className="px-2.5 py-1.5 bg-[#EAF7EE] text-emerald-800 border border-emerald-200 hover:bg-[#D4F0DB] text-[10px] font-bold rounded-lg cursor-pointer transition-all flex items-center gap-1.5"
+                                    >
+                                      <Icon name="check" className="w-3.5 h-3.5 text-emerald-700" /> Receber hoje
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+
+                        {/* Quick Register Future */}
+                        <div className="bg-slate-50/50 rounded-2xl border border-slate-100 p-5 space-y-4 h-fit">
+                          <span className="text-xs font-bold text-[#636E72] uppercase tracking-wider block">Agendar Futuro</span>
+                          <form onSubmit={handleAddReceivable} className="space-y-3">
+                            <div>
+                              <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Título do Compromisso</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="Consultoria / Dividendo"
+                                value={newReceivableTitle}
+                                onChange={(e) => setNewReceivableTitle(e.target.value)}
+                                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Valor R$</label>
+                                <input
+                                  type="number"
+                                  required
+                                  placeholder="1500"
+                                  value={newReceivableAmount}
+                                  onChange={(e) => setNewReceivableAmount(e.target.value)}
+                                  className="w-full bg-white border border-slate-200 rounded-xl px-2 py-2 text-xs focus:outline-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Vence</label>
+                                <input
+                                  type="date"
+                                  required
+                                  value={newReceivableDate}
+                                  onChange={(e) => setNewReceivableDate(e.target.value)}
+                                  className="w-full bg-white border border-slate-200 rounded-xl px-2 py-1.5 text-xs focus:outline-none"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Fonte Atribuída</label>
+                              <select
+                                value={newReceivableSource}
+                                onChange={(e) => setNewReceivableSource(e.target.value)}
+                                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none"
+                              >
+                                {incomeSources.map(src => <option key={src.id} value={src.name}>{src.name}</option>)}
+                              </select>
+                            </div>
+                            <button
+                              type="submit"
+                              className="w-full py-2 bg-[#FDF1EB] hover:bg-[#FAD9CA] text-amber-900 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                            >
+                              Agendar Recebimento
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DETAIL BOXES: RECEBER PENDENTE */}
+                  {focusedSection === 'pending' && (
+                    <div className="space-y-6">
+                      <div className="border-b border-purple-100 pb-4">
+                        <h3 className="text-base font-bold text-slate-950">Transferências e Pix em Compensação</h3>
+                        <p className="text-xs text-slate-500">Processando Pix que necessitam de quitação imediata.</p>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 space-y-2">
+                          {pendingReceipts.length === 0 ? (
+                            <div className="text-center py-10 bg-[#FAF9F6] border border-slate-100 rounded-2xl">
+                              <p className="text-xs font-bold text-slate-450">Nenhuma transferência pendente processando.</p>
+                            </div>
+                          ) : (
+                            pendingReceipts.map(pend => (
+                              <div key={pend.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl gap-3 hover:shadow-2xs transition-all animate-pop-in">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600">
+                                    <Icon name="clock" className="w-5 h-5" />
+                                  </div>
+                                  <div>
+                                    <h4 className="text-sm font-bold text-slate-800">{pend.title}</h4>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <span className="px-2 py-0.5 bg-[#F5EEFB] text-[9px] font-bold text-purple-800 rounded">
+                                        {pend.source}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Compensando</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-0 pt-2 sm:pt-0 border-slate-100">
+                                  <span className="text-sm font-extrabold text-[#1A1A1A] font-mono">{formatCurrency(pend.amount)}</span>
+                                  <button
+                                    onClick={() => handleConfirmPending(pend.id)}
+                                    className="px-3 py-1.5 bg-[#F5EEFB] hover:bg-[#EBD9F7] text-purple-900 border border-purple-200 text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1 transition-all"
+                                  >
+                                    <Icon name="check" className="w-3.5 h-3.5 text-purple-700" /> Confirmar Pix
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+
+                        {/* Quick Register Pending */}
+                        <div className="bg-slate-50/50 rounded-2xl border border-slate-100 p-5 space-y-4 h-fit">
+                          <span className="text-xs font-bold text-[#636E72] uppercase tracking-wider block">Pix em Processamento</span>
+                          <form onSubmit={handleAddPending} className="space-y-3">
+                            <div>
+                              <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Título do Recebimento</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="Consultoria Design Pix"
+                                value={newPendingTitle}
+                                onChange={(e) => setNewPendingTitle(e.target.value)}
+                                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Valor R$</label>
+                              <input
+                                type="number"
+                                required
+                                placeholder="1200"
+                                value={newPendingAmount}
+                                onChange={(e) => setNewPendingAmount(e.target.value)}
+                                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Fonte Vinculada</label>
+                              <select
+                                value={newPendingSource}
+                                onChange={(e) => setNewPendingSource(e.target.value)}
+                                className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none"
+                              >
+                                {incomeSources.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                              </select>
+                            </div>
+                            <button
+                              type="submit"
+                              className="w-full py-2 bg-[#F5EEFB] hover:bg-[#EBD9F7] text-purple-900 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                            >
+                              Registrar Transferência
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              </div>
+
+            </main>
+
+            {/* REAL DIALOG MODAL FOR QUICK NEW TRANSACTIONS */}
+            {showAddTransactionModal && (
+              <div className="fixed inset-0 z-50 bg-[#2D3436]/60 backdrop-blur-xs flex items-center justify-center p-4">
+                <div className="bg-white rounded-3xl w-full max-w-sm border border-slate-200 shadow-2xl overflow-hidden animate-pop-in">
+                  
+                  <div className="bg-slate-50 border-b border-slate-150 p-5 flex items-center justify-between">
+                    <div>
+                      <h3 className="font-extrabold text-[#1A1A1A] text-sm md:text-base">Novo Lançamento Rápido</h3>
+                      <p className="text-[11px] text-slate-405">Insira as informações do caixa financeiro.</p>
+                    </div>
+                    <button 
+                      onClick={() => setShowAddTransactionModal(false)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
+                    >
+                      <Icon name="x" className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleCreateTransaction} className="p-5 space-y-4">
+                    {/* Toggle selector type for transaction */}
+                    <div>
+                      <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2">Tipo de Lançamento</label>
+                      <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-xl gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setTxType('expense')}
+                          className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${txType === 'expense' ? 'bg-[#ECF5FC] text-sky-800 shadow-3xs' : 'text-slate-500'}`}
+                        >
+                          Gasto / Saída
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTxType('income')}
+                          className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${txType === 'income' ? 'bg-[#EAF7EE] text-emerald-800 shadow-3xs' : 'text-slate-500'}`}
+                        >
+                          Receita / Entrada
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Descricao */}
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Descrição</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Ex: Assinatura Mensal, Pix Clientes"
+                        value={txTitle}
+                        onChange={(e) => setTxTitle(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Valor R$</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          required
+                          placeholder="250,50"
+                          value={txAmount}
+                          onChange={(e) => setTxAmount(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Data</label>
+                        <input
+                          type="date"
+                          required
+                          value={txDate}
+                          onChange={(e) => setTxDate(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Classificacao selectors drop downs */}
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">
+                        {txType === 'expense' ? 'Categoria do Gasto' : 'Fonte Realizada'}
+                      </label>
+                      <select
+                        value={txCategoryOrSource}
+                        onChange={(e) => setTxCategoryOrSource(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none"
+                      >
+                        <option value="">Selecione uma opção...</option>
+                        {txType === 'expense' 
+                          ? updatedCategories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)
+                          : incomeSources.map(s => <option key={s.id} value={s.name}>{s.name}</option>)
+                        }
+                      </select>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className={`w-full py-3.5 text-white font-extrabold text-xs tracking-wider uppercase rounded-xl cursor-pointer ${txType === 'expense' ? 'bg-slate-900 hover:bg-slate-800' : 'bg-emerald-600 hover:bg-emerald-700'}`}
+                    >
+                      Registrar Lançamento
+                    </button>
+
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Footer aesthetics elements */}
+            <footer className="bg-white border-t border-slate-150 py-6 mt-12 text-center text-xs text-slate-400 space-y-1">
+              <p className="font-semibold font-sans">© 2026 Finanças Pessoais. Desenvolvido para organização descomplicada.</p>
+              <p className="font-mono text-[9px] text-slate-350 uppercase">PASTEL DESIGN BENTO GRID INTEGRADO AUTÔNOMO</p>
+            </footer>
+
+          </div>
+        );
+      }
+
+      // 3. MAIN APPLICATION COORDINATOR
+      function App() {
+        const [firstLoginCompleted, setFirstLoginCompleted] = useState(() => {
+          try {
+            const saved = localStorage.getItem('finance_first_login_completed_v1');
+            return saved ? JSON.parse(saved) : false;
+          } catch {
+            return false;
+          }
+        });
+
+        const [categories, setCategories] = useState(() => {
+          try {
+            const saved = localStorage.getItem('finance_categories');
+            return saved ? JSON.parse(saved) : DEFAULT_CATEGORIES;
+          } catch {
+            return DEFAULT_CATEGORIES;
+          }
+        });
+
+        const [incomeSources, setIncomeSources] = useState(() => {
+          try {
+            const saved = localStorage.getItem('finance_income_sources');
+            return saved ? JSON.parse(saved) : DEFAULT_INCOME_SOURCES;
+          } catch {
+            return DEFAULT_INCOME_SOURCES;
+          }
+        });
+
+        const [pendingReceipts, setPendingReceipts] = useState(() => {
+          try {
+            const saved = localStorage.getItem('finance_pending_receipts');
+            return saved ? JSON.parse(saved) : [];
+          } catch {
+            return [];
+          }
+        });
+
+        const [receivables, setReceivables] = useState(() => {
+          try {
+            const saved = localStorage.getItem('finance_receivables');
+            return saved ? JSON.parse(saved) : [];
+          } catch {
+            return [];
+          }
+        });
+
+        const [transactions, setTransactions] = useState(() => {
+          try {
+            const saved = localStorage.getItem('finance_transactions');
+            return saved ? JSON.parse(saved) : [];
+          } catch {
+            return [];
+          }
+        });
+
+        // Save progress to LocalStorage
+        useEffect(() => {
+          localStorage.setItem('finance_first_login_completed_v1', JSON.stringify(firstLoginCompleted));
+          localStorage.setItem('finance_categories', JSON.stringify(categories));
+          localStorage.setItem('finance_income_sources', JSON.stringify(incomeSources));
+          localStorage.setItem('finance_pending_receipts', JSON.stringify(pendingReceipts));
+          localStorage.setItem('finance_receivables', JSON.stringify(receivables));
+          localStorage.setItem('finance_transactions', JSON.stringify(transactions));
+        }, [firstLoginCompleted, categories, incomeSources, pendingReceipts, receivables, transactions]);
+
+        const handleOnboardingComplete = (setup) => {
+          setCategories(setup.categories);
+          setIncomeSources(setup.incomeSources);
+          
+          if (setup.loadDemo) {
+            setTransactions(DEMO_TRANSACTIONS);
+            setPendingReceipts(INITIAL_PENDING);
+            setReceivables(INITIAL_RECEIVABLES);
+          } else {
+            setTransactions([]);
+            setPendingReceipts([]);
+            setReceivables([]);
+          }
+          setFirstLoginCompleted(true);
+        };
+
+        const handleResetToFirstLogin = () => {
+          setCategories(DEFAULT_CATEGORIES);
+          setIncomeSources(DEFAULT_INCOME_SOURCES);
+          setTransactions([]);
+          setPendingReceipts([]);
+          setReceivables([]);
+          setFirstLoginCompleted(false);
+          try {
+            localStorage.removeItem('finance_first_login_completed_v1');
+            localStorage.removeItem('finance_categories');
+            localStorage.removeItem('finance_income_sources');
+            localStorage.removeItem('finance_pending_receipts');
+            localStorage.removeItem('finance_receivables');
+            localStorage.removeItem('finance_transactions');
+          } catch (e) {}
+        };
+
+        return (
+          <div className="selection:bg-sky-200">
+            {!firstLoginCompleted ? (
+              <Onboarding onComplete={handleOnboardingComplete} />
+            ) : (
+              <Dashboard 
+                categories={categories}
+                incomeSources={incomeSources}
+                initialPending={pendingReceipts}
+                initialReceivables={receivables}
+                initialTransactions={transactions}
+                onReset={handleResetToFirstLogin}
+              />
+            )}
+          </div>
+        );
+      }
+
+      // Root render initializer
+      const container = document.getElementById('root');
+      const root = ReactDOM.createRoot(container);
+      root.render(<App />);
+    </script>
+  </body>
+</html>
