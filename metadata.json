@@ -1,0 +1,6 @@
+{
+  "name": "Finanças Pessoais",
+  "description": "Aplicativo de finanças pessoais acolhedor com planejamento de fluxo de caixa, orçamento por categorias e interface em cores pastel.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
